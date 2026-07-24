@@ -4,20 +4,21 @@ import re
 import subprocess
 from collections import defaultdict
 
-# {'d': ['MY_MACRO_1', 'MY_MACRO_2', ..., 'MY_MACRO_N'],
-#  'f': ['my_func_1', 'my_func_2', ..., 'my_func_n'],
-#  's': ['my_struct_1', 'my_struct_2', ..., 'my_struct_n']}
-unused_identifiers = defaultdict(list) # appears once in the code
-munused_identifiers = defaultdict(list) # appears twice in the code
+# {1: {'d': ['MY_MACRO_1', 'MY_MACRO_2'], 'f': ['my_func_1', 'my_func_2', ]},
+#  2: {'d': ['MY_MACRO_9', 'MY_MACRO_n'], 'f': ['my_func_3', 'my_func_4', ]},
+#  3: {'d': ['MY_MACRO_b', 'MY_MACRO_a'], 'f': ['my_func_8', 'my_func_9', ]}
+#  }
+# Keys of the first dict (1, 2, 3...) - the number of times the identifier appears in the code
+# Keys of the second dict - see "types of identifiers" below
+identifiers = defaultdict(lambda: defaultdict(list))
 
 # external api:
-#   * parse_ctags_file() - read ./tags and fill unused_identifiers and munused_identifiers
-#   * get_unused_identifiers() - get list of specified (d, m, f...) unused identifiers
-#   * get_munused_identifiers() - get list of specified (d, m, f...) maybe unused identifiers
+#   * parse_ctags_file() - read ./tags and fill global 'identifiers' dict.
+#       It's not printing anything
+#   * get_identifiers() - get the list of specified identifiers
 #
-#       Call parse_ctags_file() once first, and only then call get_unused_identifiers()
-#       and get_munused_identifiers(), since they use global variables that are populated
-#       by parse_ctags_file()
+#       Call parse_ctags_file() once first, and only then call get_identifiers(),
+#       since it uses global variables that are populated by parse_ctags_file()
 
 # types of identifiers:
 #	'd' - macro
@@ -59,11 +60,10 @@ def get_identifier_usage(identifier: str):
 
     return ret
 
-# @print_flag: 0 (default) - do not print
-#              1 - print only unused identifiers
-#              2 - print only maybe unused identifiers
-#              3 - print unused and maybe unused identifiers
-def parse_ctags_file(print_flag = 0):
+def parse_ctags_file(use_cnt = 1):
+    if use_cnt <= 0:
+        return
+
     with open("./tags", 'r') as ctags_file:
         for line in ctags_file:
             identifier = get_identifier_name(line)
@@ -72,25 +72,25 @@ def parse_ctags_file(print_flag = 0):
 
             idfr_type = get_identifier_type(line)
             cnt = get_identifier_usage(identifier)
-            if cnt > 2:
+            if cnt > use_cnt:
                 continue
-            elif cnt == 2:
-                munused_identifiers[idfr_type].append(identifier)
-                if print_flag == 2:
-                    print(f"{idfr_type}:{cnt}:{identifier}")
-            elif cnt == 1:
-                unused_identifiers[idfr_type].append(identifier)
-                if print_flag == 1:
-                    print(f"{idfr_type}:{cnt}:{identifier}")
 
-            if print_flag == 3:
-                print(f"{idfr_type}:{cnt}:{identifier}")
+            identifiers[cnt][idfr_type].append(identifier)
 
-def get_unused_identifiers(idfr_type: str) -> list:
-    return unused_identifiers[idfr_type]
+def get_identifiers(identifier_type: str = '?', count: int = 1):
+    ret = identifiers[count]
 
-def get_munused_identifiers(idfr_type: str) -> list:
-    return munused_identifiers[idfr_type]
+    if len(ret) == 0:
+        return []
+
+    if identifier_type == '?':
+        tmp = []
+        for val in ret.values():
+            tmp.extend(val)
+        return tmp
+
+    return ret[identifier_type]
 
 #if __name__ == "__main__":
-   #parse_ctags_file(3)
+   #parse_ctags_file()
+   #print(get_unused_identifiers())
