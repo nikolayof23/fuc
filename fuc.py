@@ -1,6 +1,5 @@
 # Copyright 2026, Nikolay Kulikov <nikolayof23@gmail.com>
 
-import re
 import subprocess
 from collections import defaultdict
 
@@ -32,21 +31,6 @@ identifiers = defaultdict(lambda: defaultdict(list))
 #	'h' - included header
 #	'v' - variable
 
-
-def get_identifier_name(line):
-    pattern = r'^!.*'   # comments in the top of ctags file
-    if re.match(pattern, line):
-        return False
-
-    words_in_line = line.split('\t')
-    return words_in_line[0]
-
-# @line - line from ctags file
-def get_identifier_type(line: str) -> str:
-    sublines = line.split('"')
-    right = sublines[1].strip()
-    return right.split()[0]
-
 def get_identifier_usage(identifier: str):
     git_grep = subprocess.run(['git', 'grep', '-ch', '-F', f"{identifier}"],
                               capture_output = True,
@@ -66,11 +50,15 @@ def parse_ctags_file(use_cnt = 1):
 
     with open("./tags", 'r') as ctags_file:
         for line in ctags_file:
-            identifier = get_identifier_name(line)
-            if identifier == False:
+            if line[0] == '!':
                 continue
 
-            idfr_type = get_identifier_type(line)
+            line = line.strip()
+
+            # ['IDENTIFIER_NAME', './path/to/file', '/^vim_command/;', 'identifier_type']
+            words_in_line = line.split('\t')
+            identifier = words_in_line[0]
+            idfr_type = words_in_line[3]
             cnt = get_identifier_usage(identifier)
             if cnt > use_cnt:
                 continue
