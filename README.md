@@ -18,11 +18,11 @@ others are meaningless without it.
 * `get_identifiers(identifier_type: str, count: int)` - get an array of string
 containing identifiers.
     - `@identifier_type` -  identifier type, single letter string - 'f', 'd';
-    Default '?' - combine all identifiers.
+    Default '?' - combine all identifiers;
+    '!dfs' - include evrything, except 'd', 'f', 's'.
     - `@count` - return identifiers that appear exactly `count` times.
     Default `1`.
 
-* `get_unused_identifiers()` - Get all identifiers that appear once.
 
 ### Types of identifiers (from ctags):
     - 'd' - macro

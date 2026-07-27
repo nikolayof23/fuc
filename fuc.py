@@ -89,8 +89,21 @@ def get_identifiers(identifier_type: str = '?', count: int = 1):
             tmp.extend(val)
         return tmp
 
+    # check "!e", "!dm", "!fgt" ...
+    if identifier_type[0] == '!':
+        tmp = []
+
+        if len(identifier_type) < 2:
+            return tmp
+
+        for key, val in ret.items():
+            if key in identifier_type[1:]:
+                continue
+            tmp.extend(val)
+        return tmp
+
     return ret[identifier_type]
 
 #if __name__ == "__main__":
    #parse_ctags_file()
-   #print(get_unused_identifiers())
+   #print(get_identifiers("!d"))
