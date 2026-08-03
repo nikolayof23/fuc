@@ -44,6 +44,12 @@ def get_identifier_usage(identifier: str):
 
     return ret
 
+def is_c_src_file(filename: str) -> bool:
+    if len(filename) < 2:
+        return False
+
+    return filename[-2] == '.' and (filename[-1] == 'c' or filename[-1] == 'h')
+
 def parse_ctags_file(use_cnt = 1):
     if use_cnt <= 0:
         return
@@ -57,6 +63,8 @@ def parse_ctags_file(use_cnt = 1):
 
             # ['IDENTIFIER_NAME', './path/to/file', '/^vim_command/;', 'identifier_type']
             words_in_line = line.split('\t')
+            if not is_c_src_file(words_in_line[1]):
+                continue
             identifier = words_in_line[0]
             idfr_type = words_in_line[3]
             cnt = get_identifier_usage(identifier)
