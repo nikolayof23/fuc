@@ -50,6 +50,23 @@ def is_c_src_file(filename: str) -> bool:
 
     return filename[-2] == '.' and (filename[-1] == 'c' or filename[-1] == 'h')
 
+# converts ctags file line to list:
+# ['IDENTIFIER_NAME', './path/to/file', 'identifier_type']
+def parse_c_ctags_line(line: str) -> list[str]:
+    ret = []
+    words = line.split('\t')
+    ret.append(words[0]) # get identifier name and filename because they don't contain a tabs
+    ret.append(words[1])
+
+    # split the line by 2
+    #   left - isn't need, we already have idfr name and filename; the vim command isn't need
+    #   right - identifier type, and something other, use
+    right = line.split('"')[1]
+    right = right.strip()
+    right = right.split('\t') # next everything is split by tabs
+    ret.append(right[0])
+    return ret
+
 def parse_ctags_file(use_cnt = 1):
     if use_cnt <= 0:
         return
@@ -61,12 +78,11 @@ def parse_ctags_file(use_cnt = 1):
 
             line = line.strip()
 
-            # ['IDENTIFIER_NAME', './path/to/file', '/^vim_command/;', 'identifier_type']
-            words_in_line = line.split('\t')
+            words_in_line = parse_c_ctags_line(line)
             if not is_c_src_file(words_in_line[1]):
                 continue
             identifier = words_in_line[0]
-            idfr_type = words_in_line[3]
+            idfr_type = words_in_line[2]
             cnt = get_identifier_usage(identifier)
             if cnt > use_cnt:
                 continue
