@@ -1,6 +1,7 @@
 # Copyright 2026, Nikolay Kulikov <nikolayof23@gmail.com>
 
 import subprocess
+import json
 from collections import defaultdict
 
 # {1: {'d': ['MY_MACRO_1', 'MY_MACRO_2'], 'f': ['my_func_1', 'my_func_2', ]},
@@ -130,6 +131,11 @@ def get_identifiers(identifier_type: str = '?', count: int = 1):
 
     return ret[identifier_type]
 
+def load_dict_to_file(filename: str, data: dict):
+    with open(filename, 'a') as file:
+        json.dump(data, file, indent = 4)
+
 #if __name__ == "__main__":
    #parse_ctags_file()
+   #load_dict_to_file("./fuc-data.json", identifiers)
    #print(get_identifiers("!d"))
