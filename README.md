@@ -23,6 +23,10 @@ containing identifiers.
     - `@count` - return identifiers that appear exactly `count` times.
     Default `1`.
 
+* `print_identifiers(cnt: int)` - display the total number of identifiers in group.
+    - `cnt` - print identifiers that appear exactly `count` times.
+    Default `1`, "unused".
+
 
 ### Types of identifiers (from ctags):
     - 'd' - macro
@@ -64,6 +68,11 @@ function FucJumpToNext()
     execute "tag " . g:fuc_info[g:fuc_index]
     let g:fuc_index += 1
 endfunction
+
+function FucShowUnused()
+	echo py3eval("print_identifiers()")
+endfunction
+
 
 nnoremap <F6> :call FucJumpToNext() <CR>
 ```

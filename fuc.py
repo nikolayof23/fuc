@@ -11,10 +11,24 @@ from collections import defaultdict
 # Keys of the second dict - see "types of identifiers" below
 identifiers = defaultdict(lambda: defaultdict(list))
 
+
+def print_identifiers(cnt: int = 1):
+    print(f"{len(identifiers[cnt]['d'])} unused macros")
+    print(f"{len(identifiers[cnt]['f'])} unused functions")
+    print(f"{len(identifiers[cnt]['s'])} unused structures")
+    print(f"{len(identifiers[cnt]['u'])} unused unions")
+    print(f"{len(identifiers[cnt]['m'])} unused members")
+    print(f"{len(identifiers[cnt]['t'])} unused typedefs")
+    print(f"{len(identifiers[cnt]['e'])} unused enumerators")
+    print(f"{len(identifiers[cnt]['g'])} unused enumerations")
+    print(f"{len(identifiers[cnt]['h'])} unused headers")
+    print(f"{len(identifiers[cnt]['v'])} unused variables")
+
 # external api:
 #   * parse_ctags_file() - read ./tags and fill global 'identifiers' dict.
 #       It's not printing anything
 #   * get_identifiers() - get the list of specified identifiers
+#   * print_identifiers() - display the total number of identifiers in the group @cnt
 #
 #       Call parse_ctags_file() once first, and only then call get_identifiers(),
 #       since it uses global variables that are populated by parse_ctags_file()
