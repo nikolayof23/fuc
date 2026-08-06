@@ -87,3 +87,14 @@ FucLoad(), and then simply pressing F6:
     (vim) <F6>, <F6>...
     (vim) <C-t>, <C-t>...
     (vim) :tabnew ...
+
+
+## Execution from the terminal
+Run the script with the `--check_code` flag to check the C source code in the
+current directory and output brief statistics using `print_identifiers()`:
+
+`python ./path/to/fuc.py --check-code ./`
+
+
+Running the script without parameters has no effect;
+it is intended for correct loading from ~/.vimrc
