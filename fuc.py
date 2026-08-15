@@ -47,18 +47,16 @@ def print_identifiers(cnt: int = 1):
 #	'h' - included header
 #	'v' - variable
 
-def get_identifier_usage(identifier: str):
-    git_grep = subprocess.run(['git', 'grep', '-ch', '-F', f"{identifier}"],
+# Run 'git grep' for the identifier and get a list of lines where it appears
+# return format:
+#       ["path/to/file.c:some source line",
+#        "another/file/path.h:  #define MY_MACRO"]
+def _git_grep(identifier: str) -> list[str]:
+    git_grep = subprocess.run(['git', 'grep', '-rwF', f"{identifier}"],
                               capture_output = True,
                               text = True)
     lines = git_grep.stdout.strip()
-    str_list = lines.splitlines()
-    ret = 0
-    for i in str_list:
-        if i.isdigit():
-            ret += int(i)
-
-    return ret
+    return lines.splitlines()
 
 def is_c_src_file(filename: str) -> bool:
     if len(filename) < 2:
@@ -99,7 +97,8 @@ def parse_ctags_file(use_cnt = 1):
                 continue
             identifier = words_in_line[0]
             idfr_type = words_in_line[2]
-            cnt = get_identifier_usage(identifier)
+            git_grep_entries = _git_grep(identifier)
+            cnt = len(git_grep_entries)
             if cnt > use_cnt:
                 continue
 
