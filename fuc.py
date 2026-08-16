@@ -3,6 +3,7 @@
 import subprocess
 import json
 import sys
+import re
 from collections import defaultdict
 
 # {1: {'d': ['MY_MACRO_1', 'MY_MACRO_2'], 'f': ['my_func_1', 'my_func_2', ]},
@@ -58,6 +59,40 @@ def _git_grep(identifier: str) -> list[str]:
     lines = git_grep.stdout.strip()
     return lines.splitlines()
 
+def _re_ascii_match(pattern: str, string: str):
+    return re.match(pattern, string, flags = re.ASCII)
+
+# TODO: compile patterns?
+def _is_c_used_function(git_grep_entries: list[str]) -> bool:
+    if len(git_grep_entries) == 1: return True
+    if len(git_grep_entries) > 2: return False
+
+    static_func_pattern = r'.*[\t ]*static[\t ]*.*'
+    if (_re_ascii_match(static_func_pattern, git_grep_entries[0]) or
+        _re_ascii_match(static_func_pattern, git_grep_entries[1])):
+           return False
+
+    # ret_type func_name(*
+    function_header_pattern = r'^\s*\w+\s*\w+\s*\(.*'
+    if (_re_ascii_match(function_header_pattern, git_grep_entries[0]) and
+        _re_ascii_match(function_header_pattern, git_grep_entries[1])):
+        return True
+
+    # get filename from git grep output (everything before ':')
+    first_filename = git_grep_entries[0].split(':')[0]
+    second_filename = git_grep_entries[1].split(':')[0]
+
+    # check last char in filename ('c' or 'h' for C)
+    # difficult suffixes mean that first entry - declaration, second - definition; func unused
+    if first_filename[-1] != second_filename[-1]:
+        return True;
+
+    if (git_grep_entries[0] in git_grep_entries[1] or
+        git_grep_entries[1] in git_grep_entries[0]):
+        return True;
+
+    return False
+
 def is_c_src_file(filename: str) -> bool:
     if len(filename) < 2:
         return False
@@ -99,6 +134,11 @@ def parse_ctags_file(use_cnt = 1):
             idfr_type = words_in_line[2]
             git_grep_entries = _git_grep(identifier)
             cnt = len(git_grep_entries)
+
+            if (idfr_type == 'f') and _is_c_used_function(git_grep_entries):
+                identifiers[1]['f'].append(identifier)
+                continue
+
             if cnt > use_cnt:
                 continue
 
